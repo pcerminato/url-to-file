@@ -1,0 +1,15 @@
+*.log
+*.md
+*.config.*
+.dockerignore
+.git
+.env*
+.postman
+.gitignore
+.prettierrc
+dist/tests
+docker-compose.yml
+Dockerfile
+docs
+node_modules
+postman

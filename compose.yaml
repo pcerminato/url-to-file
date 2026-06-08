@@ -1,0 +1,14 @@
+services:
+  api:
+    container_name: url-print-worker
+    build:
+      context: .
+      target: development
+    ports:
+      - "8082:8082"
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - /app/node_modules
+  
