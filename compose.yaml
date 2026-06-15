@@ -1,11 +1,11 @@
 services:
   api:
-    container_name: url-to-file
+    container_name: url-print-worker
     build:
       context: .
       target: development
     ports:
-      - "8081:8081"
+      - "8082:8082"
     env_file:
       - .env
     volumes:
@@ -14,12 +14,26 @@ services:
   rabbitmq:
     image: rabbitmq:4-management
     ports: ["5672:5672", "15672:15672"]
-    env_file:
-      - ..env
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
     volumes:
-      - rabbitmq_data:/var/lib/rabbitmq # Data persistence
+      - rabbitmq_data:/var/lib/rabbitmq # Ensures data persistence
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_running"]
     restart: unless-stopped
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 volumes:
   rabbitmq_data:
+  postgres_data:
