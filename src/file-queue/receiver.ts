@@ -40,7 +40,7 @@ import { FileJob } from "../interfaces/index.js";
           jobId: parsedJob.jobId,
           fileUrl: result.fileUrl,
           fileName: result.fileName,
-          updatedAt: JSON.stringify(Date.now()),
+          doneBy: JSON.stringify(Date.now()),
           status: "done",
         });
         if (job) {
@@ -50,7 +50,7 @@ import { FileJob } from "../interfaces/index.js";
     } catch (error: unknown) {
       db.updateFileJob({
         jobId: parsedJob.jobId,
-        updatedAt: JSON.stringify(Date.now()),
+        doneBy: JSON.stringify(Date.now()),
         status: "error",
         error: (error instanceof Error)
           ? error.message

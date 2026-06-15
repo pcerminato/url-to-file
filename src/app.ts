@@ -29,7 +29,7 @@ export function createApp(APP_URI: string) {
         storageDir: `static/files`,
         fileUrl: `${APP_URI}/static/files/${fileName}`,
         sourceUrl: global.decodeURI(sourceUrl),
-        startedAt: JSON.stringify(Date.now()),
+        createdAt: JSON.stringify(Date.now()),
       };
 
       await db.createFileJob(job);

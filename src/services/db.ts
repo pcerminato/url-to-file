@@ -27,6 +27,7 @@ export class DB implements IFileDB {
       jobId: id,
       fileName: "Mock-file-name-data.img",
       fileUrl: "http://localhost:8081/static/example.png",
+      createdAt: JSON.stringify(Date.now()),
       startedAt: JSON.stringify(Date.now()),
       status: "progress",
       sourceUrl: "https://www.tycsports.com/",
