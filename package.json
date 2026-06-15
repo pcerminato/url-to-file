@@ -5,10 +5,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/server/index.ts",
-    "dev:queue": "npm run build && node dist/server/file-queue/receiver.js",
-    "build": "tsc",
-    "start": "node dist/index.js"
+    "dev": "tsx --env-file=.env --watch src/server.ts",
+    "dev:queue": "npm run build && node dist/file-queue/receiver.js",
+    "build": "rm -rf ./dist && tsc && cp -R ./src/static ./dist",
+    "start": "node --env-file=.env dist/server.js"
   },
   "keywords": [],
   "author": "",
@@ -16,7 +16,8 @@
   "dependencies": {
     "amqplib": "^2.0.1",
     "express": "^5.2.1",
-    "puppeteer": "^25.1.0"
+    "puppeteer": "^25.1.0",
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
