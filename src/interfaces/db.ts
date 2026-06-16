@@ -5,5 +5,5 @@ export interface IFileDB {
   disconnect(): void;
   createFileJob(data: FileJob): Promise<JobId>;
   updateFileJob(data: Partial<FileJob>): Promise<FileJob>;
-  getFileJobById(id: JobId): Promise<FileJob>;
+  getFileJobById(id: JobId): Promise<FileJob | null>;
 }

@@ -1,6 +1,6 @@
 services:
   api:
-    container_name: url-print-worker
+    container_name: rest-app
     build:
       context: .
       target: development

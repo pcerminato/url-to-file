@@ -94,16 +94,38 @@ export class DB implements IFileDB {
     );
     return Promise.resolve(data);
   }
-  getFileJobById(id: JobId): Promise<FileJob> {
-    return Promise.resolve({
-      jobId: id,
-      fileName: "Mock-file-name-data.img",
-      fileUrl: "http://localhost:8081/static/example.png",
-      createdAt: JSON.stringify(Date.now()),
-      startedAt: JSON.stringify(Date.now()),
-      status: "progress",
-      sourceUrl: "https://www.tycsports.com/",
-      storageDir: "static",
-    });
+  async getFileJobById(id: JobId): Promise<FileJob | null> {
+    await this.connect();
+
+    try {
+      const result = await this.client?.query(
+        "SELECT data, status, created_at FROM jobs WHERE job_id = $1",
+        [id],
+      );
+
+      if (result && result.rows?.length === -1) {
+        return null;
+      }
+
+      const {
+        data: { fileUrl, fileName, sourceUrl, storageDir },
+        status,
+        created_at: createdAt,
+      } = result?.rows[0];
+
+      return Promise.resolve({
+        jobId: id,
+        fileUrl,
+        fileName,
+        sourceUrl,
+        storageDir,
+        status,
+        createdAt,
+      });
+    } catch (error) {
+      throw error;
+    } finally {
+      this.disconnect();
+    }
   }
 }

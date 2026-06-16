@@ -59,7 +59,7 @@ export function createApp(APP_URI: string) {
       return res.json({
         ...fileJob,
       });
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof Error) {
         return res.status(500).json({
           error: error.message,
