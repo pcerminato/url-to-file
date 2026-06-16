@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import { sendToQueue } from "./file-queue/sender.js";
 import { FileJob } from "./interfaces/index.js";
 import { DB } from "./services/db.js";
+import { dateNowIso } from "./services/index.js";
 
 export function createApp(APP_URI: string) {
   const app = express();
@@ -20,26 +21,28 @@ export function createApp(APP_URI: string) {
 
   app.get("/download-file", async (req, res) => {
     try {
-      const fileName = req.query["file-name"] as string || "file-example.png";
+      const qFileName = req.query["file-name"] as string || "file-example.png";
       const sourceUrl = req.query["source-url"] as string;
+      const jobId = uuidv4();
+      const fileName = `${jobId}_${qFileName}`;
+
       const job: FileJob = {
         fileName,
-        jobId: uuidv4(),
+        jobId,
         status: "pending",
         storageDir: `static/files`,
         fileUrl: `${APP_URI}/static/files/${fileName}`,
         sourceUrl: global.decodeURI(sourceUrl),
-        createdAt: JSON.stringify(Date.now()),
+        createdAt: dateNowIso(),
       };
 
-      await db.createFileJob(job);
-      await sendToQueue(job);
+      await db.createFileJob(job, sendToQueue);
 
       return res.json({
         jobId: job.jobId,
         fileName,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof Error) {
         return res.status(500).json({
           error: error.message,

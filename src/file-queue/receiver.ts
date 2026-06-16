@@ -8,7 +8,7 @@ import amqp from "amqplib";
 import { QUEUE_NAME, RMQ_URL } from "./constants.js";
 import { createFileWorker } from "../file-worker/index.js";
 import { IFileDB } from "../interfaces/db.js";
-import { DB } from "../services/db.js";
+import { dateNowIso, DB } from "../services/index.js";
 import { FileJob } from "../interfaces/index.js";
 
 (async function receiveFromQueue(db: IFileDB) {
@@ -40,7 +40,7 @@ import { FileJob } from "../interfaces/index.js";
           jobId: parsedJob.jobId,
           fileUrl: result.fileUrl,
           fileName: result.fileName,
-          doneBy: JSON.stringify(Date.now()),
+          doneBy: dateNowIso(),
           status: "done",
         });
         if (job) {
