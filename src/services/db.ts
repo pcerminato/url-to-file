@@ -1,6 +1,7 @@
 import { Pool, PoolClient } from "pg";
 import { IFileDB } from "../interfaces/db.js";
 import { FileJob, JobId } from "../interfaces/index.js";
+import { parseDbResult } from "./utils.js";
 
 const { DB_USER, DB_PASSWORD, DB_NAME, DB_HOST, DB_PORT } = process.env;
 
@@ -88,40 +89,36 @@ export class DB implements IFileDB {
       this.disconnect();
     }
   }
-  updateFileJob(data: FileJob): Promise<FileJob> {
-    console.log(
-      `JobId ${data.jobId} updated in the db with status ${data.status}.`,
-    );
-    return Promise.resolve(data);
+  async updateFileJob(job: FileJob): Promise<FileJob> {
+    await this.connect();
+    try {
+      await this.client?.query(
+        "UPDATE jobs SET status=$2, started_at=$3, done_by=$4 WHERE job_id = $1",
+        [job.jobId, job.status, job.startedAt, job.doneBy],
+      );
+
+      return Promise.resolve(job);
+    } catch (error) {
+      throw error;
+    } finally {
+      this.disconnect();
+    }
   }
   async getFileJobById(id: JobId): Promise<FileJob | null> {
     await this.connect();
 
     try {
       const result = await this.client?.query(
-        "SELECT data, status, created_at FROM jobs WHERE job_id = $1",
+        "SELECT job_id, data, status, created_at FROM jobs WHERE job_id = $1",
         [id],
       );
 
-      if (result && result.rows?.length === -1) {
-        return null;
+      let data = null;
+      if (result?.rows[0]) {
+        data = parseDbResult(result?.rows[0]);
       }
 
-      const {
-        data: { fileUrl, fileName, sourceUrl, storageDir },
-        status,
-        created_at: createdAt,
-      } = result?.rows[0];
-
-      return Promise.resolve({
-        jobId: id,
-        fileUrl,
-        fileName,
-        sourceUrl,
-        storageDir,
-        status,
-        createdAt,
-      });
+      return Promise.resolve(data);
     } catch (error) {
       throw error;
     } finally {

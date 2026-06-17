@@ -3,9 +3,9 @@ import path from "node:path";
 import { v4 as uuidv4 } from "uuid";
 
 import { sendToQueue } from "./file-queue/sender.js";
-import { FileJob } from "./interfaces/index.js";
 import { DB } from "./services/db.js";
 import { dateNowIso } from "./services/index.js";
+import { FileJobStatusChange } from "./use-cases/set-file-status.js";
 
 export function createApp(APP_URI: string) {
   const app = express();
@@ -25,21 +25,21 @@ export function createApp(APP_URI: string) {
       const sourceUrl = req.query["source-url"] as string;
       const jobId = uuidv4();
       const fileName = `${jobId}_${qFileName}`;
+      const { setJobPending } = FileJobStatusChange(
+        db,
+        dateNowIso,
+      );
 
-      const job: FileJob = {
-        fileName,
+      await setJobPending({
         jobId,
-        status: "pending",
+        fileName,
         storageDir: `static/files`,
         fileUrl: `${APP_URI}/static/files/${fileName}`,
         sourceUrl: global.decodeURI(sourceUrl),
-        createdAt: dateNowIso(),
-      };
-
-      await db.createFileJob(job, sendToQueue);
+      }, sendToQueue);
 
       return res.json({
-        jobId: job.jobId,
+        jobId,
         fileName,
       });
     } catch (error: unknown) {

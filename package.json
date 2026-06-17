@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx --env-file=.env --watch src/server.ts",
-    "dev:queue": "npm run build && node dist/file-queue/receiver.js",
+    "dev:queue": "npm run build && node --env-file=.env dist/file-queue/receiver.js",
     "build": "rm -rf ./dist && tsc && cp -R ./src/static ./dist",
     "start": "node --env-file=.env dist/server.js"
   },
