@@ -8,8 +8,9 @@ import amqp from "amqplib";
 import { QUEUE_NAME, RMQ_URL } from "./constants.js";
 import { createFileWorker } from "../file-worker/index.js";
 import { IFileDB } from "../interfaces/db.js";
-import { DB } from "../services/db.js";
+import { dateNowIso, DB } from "../services/index.js";
 import { FileJob } from "../interfaces/index.js";
+import { FileJobStatusChange } from "../use-cases/set-file-status.js";
 
 (async function receiveFromQueue(db: IFileDB) {
   const connection = await amqp.connect(RMQ_URL);
@@ -26,7 +27,14 @@ import { FileJob } from "../interfaces/index.js";
     const parsedJob: FileJob = JSON.parse(
       job?.content?.toString() || "{}",
     );
+    const { setJobProgress, setJobDone, setJobError } = FileJobStatusChange(
+      db,
+      dateNowIso,
+    );
+
     try {
+      await setJobProgress(parsedJob);
+
       const workerRespData = await createFileWorker({
         fileName: parsedJob.fileName,
         fileUrl: parsedJob.fileUrl,
@@ -36,27 +44,14 @@ import { FileJob } from "../interfaces/index.js";
       const { result, status } = workerRespData;
 
       if (status === "done") {
-        db.updateFileJob({
-          jobId: parsedJob.jobId,
-          fileUrl: result.fileUrl,
-          fileName: result.fileName,
-          updatedAt: JSON.stringify(Date.now()),
-          status: "done",
-        });
+        await setJobDone(parsedJob);
+
         if (job) {
           channel.ack(job);
         }
       }
-    } catch (error: unknown) {
-      db.updateFileJob({
-        jobId: parsedJob.jobId,
-        updatedAt: JSON.stringify(Date.now()),
-        status: "error",
-        error: (error instanceof Error)
-          ? error.message
-          : `Error while processing the job.`,
-      });
-      console.error("Queue:error: ", error);
+    } catch (error) {
+      await setJobError(parsedJob, error);
       /*
         TODO: manage dead letter or retry logic
         if (job) {
