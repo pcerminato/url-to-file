@@ -12,31 +12,35 @@ export function createApp(APP_URI: string) {
   const db = new DB();
 
   app.use("/static", express.static(path.join(import.meta.dirname, "static")));
+  app.use(
+    "/static",
+    express.static(path.join(import.meta.dirname, "ui", "public")),
+  );
 
   app.get("/", (req, res) => {
-    res.sendFile(path.join("static", "index.html"), {
+    res.sendFile(path.join("ui", "index.html"), {
       root: import.meta.dirname,
     });
   });
 
   app.get("/download-file", async (req, res) => {
     try {
-      const qFileName = req.query["file-name"] as string || "file-example.png";
       const sourceUrl = req.query["source-url"] as string;
+      /* const fileType = req.query["file-type"] as string; */
       const jobId = uuidv4();
-      const fileName = `${jobId}_${qFileName}`;
-      const { setJobPending } = FileJobStatusChange(
-        db,
-        dateNowIso,
-      );
+      const fileName = `${jobId}`;
+      const { setJobPending } = FileJobStatusChange(db, dateNowIso);
 
-      await setJobPending({
-        jobId,
-        fileName,
-        storageDir: `static/files`,
-        fileUrl: `${APP_URI}/static/files/${fileName}`,
-        sourceUrl: global.decodeURI(sourceUrl),
-      }, sendToQueue);
+      await setJobPending(
+        {
+          jobId,
+          fileName,
+          storageDir: `static`,
+          fileUrl: `${APP_URI}/static/${fileName}`,
+          sourceUrl: global.decodeURI(sourceUrl),
+        },
+        sendToQueue,
+      );
 
       return res.json({
         jobId,

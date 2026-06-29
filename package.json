@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "tsx --env-file=.env --watch src/server.ts",
     "dev:queue": "npm run build && node --env-file=.env dist/file-queue/receiver.js",
-    "build": "rm -rf ./dist && tsc && cp -R ./src/static ./dist",
+    "build": "rm -rf ./dist && tsc && cp -R ./src/ui ./dist && mkdir ./dist/static",
     "start": "node --env-file=.env dist/server.js"
   },
   "keywords": [],

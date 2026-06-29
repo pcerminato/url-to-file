@@ -10,8 +10,7 @@ export class DB implements IFileDB {
   private client: PoolClient | null;
   constructor() {
     this.pool = new Pool({
-      connectionString:
-        `postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}`,
+      connectionString: `postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}`,
     });
     this.client = null;
   }
@@ -33,20 +32,15 @@ export class DB implements IFileDB {
     await this.connect();
 
     try {
-      const {
-        fileName,
-        fileUrl,
-        sourceUrl,
-        storageDir,
-      } = data;
+      const { fileName, fileUrl, sourceUrl, storageDir } = data;
 
       await this.client?.query("BEGIN");
 
       if (callback) {
         /*
         Approach to the callback:
-         - no refs to the queue (to avoid coupling the DB to the queue).
-         - to ensure consistency:
+          - no refs to the queue (to avoid coupling the DB to the queue).
+          - to ensure consistency:
             - if the addition to the queue fails, keep from adding the record to the DB.
             - in case the DB is down but the queue is up, consistency is reached anyways,
             because the db connection will fail before getting to the callback, so the job

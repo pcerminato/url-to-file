@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Public URL Snapshot Service</title>
+    <link rel="stylesheet" href="./static/styles.css" />
+    <script src="./static/index.js" defer></script>
+  </head>
+  <body>
+    <h1>Snapshot service</h1>
+
+    <form novalidate>
+      <p id="instructions">
+        Enter a public URL and get a snapshot downloaded as an image or PDF
+        file.
+      </p>
+      <div class="form-group">
+        <label for="input-url"
+          >Public URL<span aria-hidden="true"> *</span></label
+        >
+        <input
+          type="url"
+          id="input-url"
+          name="input_url"
+          required
+          aria-required="true"
+          placeholder="e.g. https://publicwebsite.com"
+        />
+      </div>
+      <fieldset>
+        <legend>File Type <span aria-hidden="true">*</span></legend>
+        <div class="radio-option">
+          <input
+            type="radio"
+            id="file-type-img"
+            name="file_type"
+            value="Image"
+            checked
+          />
+          <label for="file-type-img">Image</label>
+        </div>
+        <div class="radio-option">
+          <input type="radio" id="file-type-pdf" name="file_type" value="PDF" />
+          <label for="file-type-pdf">PDF</label>
+        </div>
+      </fieldset>
+      <button id="download" aria-invalid="true" disabled>Download File</button>
+    </form>
+
+    <div id="status" class="hidden">
+      <h3>Creating snapshot...</h3>
+      <p>
+        <code>JobId: <span id="status-job-id"></span></code>
+      </p>
+      <p>
+        <code>Status: <span id="status-value"></span></code>
+      </p>
+      <p>
+        <code>Download link: <a id="download">-</a></code>
+      </p>
+    </div>
+  </body>
+</html>
