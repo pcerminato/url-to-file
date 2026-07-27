@@ -1,19 +1,19 @@
-# url-print-worker
+# Public URL Printer
 
-This repo holds an experimental app that prints a file (output) from a public url (input).
+An experimental app to print a file (output) from a public url (input).
 
 ## Architecture
 
 The app is set as a distributed system (\*):
 
-- Client UI (src/ui/): html, css and js.
-- Rest API (src/app.ts): express.js.
-- Queue (src/file-queue/): rabbitMQ.
-- Worker (src/file-worker): node:worker_threads and pupeteer.
+- **Client UI** (`src/ui/`): html, css and js.
+- **Rest API** (`src/app.ts`): express.js.
+- **Queue** (`src/file-queue/`): RabbitMQ.
+- **Worker** (`src/file-worker`): node:worker_threads and Pupeteer.
 
 The architectural approach is based on _clean architecture_ (entities, use cases, adapters and implementation), directly relying on dependency and inversion of control.
 
-> (\*) For sake of the app being experimental, all the components of the system live in the same repo (api, queue, worker, ui).
+> (\*) Due to the app being exploratory/experimental, all its building blocks live in the same repo (api, queue, worker, ui).
 
 ### Interfaces & entities
 
@@ -22,7 +22,7 @@ The architectural approach is based on _clean architecture_ (entities, use cases
 
 ### Services
 
-`DB` implements `IFileDB` over Posgres.
+`DB` implements `IFileDB` over Postgres.
 
 ### Use cases
 
@@ -33,26 +33,30 @@ The architectural approach is based on _clean architecture_ (entities, use cases
 - `setJobDone()`,
 - `setJobError()`,
 
+## Design
+
+<img width="1380" height="594" alt="image" src="https://github.com/user-attachments/assets/0a011c25-4a8c-4276-b2a3-fca87480d958" />
+
 ## Flow
 
 ```text
-┌────────────────────────────────────────────────────────────────────────┐
-│ CLIENT                                                                 │
-│ GET /download-file                                                     │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │
-                                    ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│ ENDPOINT                                                               │
-│ • setJobPending()  :: stores status in DB as pending                   │
-│ • sendToQueue()    :: adds the Job to the queue as pending             │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │
-                                    ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│ QUEUE                                                                  │
-│ • /file-queue/sender.ts   :: logs each job into the queue              │
-│ • /file-queue/receiver.ts :: consumes jobs from the queue             │
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ CLIENT                                                                       (polling)                         │
+│ GET /download-file                                                           GET /download-file/status/<JobID> │
+└───────────────────────────────────┬────────────────────────────────────────────────────────────────────────────┘  
+                                    │                                                           │
+                                    ▼                                                           ▼
+┌────────────────────────────────────────────────────────────────────────┐  ┌─────────────────────────────────────┐
+│ ENDPOINT                                                               │  │ ENDPOINT                            │
+│ • setJobPending()  :: stores status in DB as pending                   │  │ • getFileJobById() :: file status   │
+│ • sendToQueue()    :: adds the Job to the queue as pending             │  │                                     │
+└───────────────────────────────────┬────────────────────────────────────┘  └───────────────────▲─────────────────┘ 
+                                    │                                                           │
+                                    ▼                                                           │
+┌────────────────────────────────────────────────────────────────────────┐                      │
+│ QUEUE                                                                  │                      │
+│ • /file-queue/sender.ts   :: logs each job into the queue              │                      │
+│ • /file-queue/receiver.ts :: consumes jobs from the queue              │──────────────────────┘
 │   ├─ creates a worker to process each pending job                      │
 │   ├─ listens to worker events                                          │
 │   └─ uses FileJobStatusChange to log job status in the DB              │
@@ -68,17 +72,17 @@ The architectural approach is based on _clean architecture_ (entities, use cases
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
-## How to run 🚀
+## How to run (locally) 🚀
 
 ### Docker build
 
 - Fill up `.env` (check out `.env.example`)
 - Start Postgres and RabbitMQ (use compose.yml)
 
-### Locally
+### App & Queue
 
 - (Install dependencies: `npm i`)
 - Rest API: `npm run build && npm start`
 - Queue: `npm run dev:queue`
 
-Open [text](http://localhost:8081/) (use the port at `.env`) in the web browser.
+Open the UI at [[text](http://localhost:8081/)](http://localhost:8081/) (use the port at `.env`) in the web browser.
